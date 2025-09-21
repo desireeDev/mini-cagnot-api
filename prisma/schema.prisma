@@ -1,0 +1,34 @@
+// Définition de la source de données (la base de données)
+
+datasource db {
+  provider = "postgresql"      // Le type de base de données utilisé (PostgreSQL ici)
+  url      = env("DATABASE_URL") // L'URL de connexion à la base, récupérée depuis une variable d'environnement
+}
+
+// Générateur Prisma Client
+generator client {
+  provider = "prisma-client-js" // Génère le client Prisma pour interagir avec la DB en JavaScript/TypeScript
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+
+}
+
+// Modèle représentant un client
+model Customer {
+  id        Int       @id @default(autoincrement()) // Clé primaire auto-incrémentée
+  name      String                                 // Nom du client
+  email     String    @unique                       // Email unique pour chaque client
+  password  String                                 // Mot de passe du client
+  points    Int       @default(0)                  // Points du client, par défaut à 0
+  payments  Payment[]                               // Relation vers le modèle Payment (un client peut avoir plusieurs paiements)
+}
+
+// Modèle représentant un paiement
+
+model Payment {
+  id         Int      @id @default(autoincrement()) // Clé primaire auto-incrémentée
+  amount     Float                                  // Montant du paiement
+  merchant   String                                 // Nom du commerçant
+  customer   Customer @relation(fields: [customerId], references: [id]) // Relation vers Customer
+  customerId Int                                     // Clé étrangère vers Customer
+  createdAt  DateTime @default(now())               // Date de création du paiement, par défaut la date actuelle
+}
