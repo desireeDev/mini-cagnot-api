@@ -1,472 +1,246 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:pay_now/widgets/horizontal_spacer.dart';
-import 'package:pay_now/widgets/vertical_spacer.dart';
-import 'package:intl/intl.dart';
+import 'package:cagnotte_app/screens/pay_merchant_screen.dart';
+import 'package:cagnotte_app/widgets/horizontal_spacer.dart';
+import 'package:cagnotte_app/widgets/vertical_spacer.dart';
+import '../services/api_service.dart';
 
-enum TransactionType { send, request }
+enum PointsTransactionType { earn, spend }
 
-class Transation {
-  String userImage;
-  String userName;
-  String dateTime;
-  double amount;
-  TransactionType transactionType;
+class PointsTransaction {
+  final String merchantName;
+  final String dateTime;
+  final double points;
+  final PointsTransactionType type;
 
-  Transation(
-      {required this.userImage,
-      required this.userName,
-      required this.dateTime,
-      required this.amount,
-      required this.transactionType});
+  PointsTransaction({
+    required this.merchantName,
+    required this.dateTime,
+    required this.points,
+    required this.type,
+  });
 }
 
-class HomeScreen extends StatelessWidget {
-  HomeScreen({Key? key}) : super(key: key);
+class HomeScreen extends StatefulWidget {
+  final int customerId; // ID client à passer à l'écran de paiement
+  const HomeScreen({Key? key, required this.customerId}) : super(key: key);
 
-  final List<Transation> transations = [
-    Transation(
-      userImage: 'yara.png',
-      userName: 'Yara Khalil',
-      dateTime: 'Oct 14, 10:24 AM',
-      amount: 15.00,
-      transactionType: TransactionType.send,
-    ),
-    Transation(
-      userImage: 'sara.png',
-      userName: 'Sara Ibrahim',
-      dateTime: 'Oct 12, 02:13 PM',
-      amount: 20.50,
-      transactionType: TransactionType.request,
-    ),
-    Transation(
-      userImage: 'ahmed.png',
-      userName: 'Ahmed Ibrahim',
-      dateTime: 'Oct 11, 01:19 AM',
-      amount: 12.40,
-      transactionType: TransactionType.request,
-    ),
-    Transation(
-      userImage: 'reem.png',
-      userName: 'Reem Khaled',
-      dateTime: 'Oct 07, 09:10 PM',
-      amount: 21.30,
-      transactionType: TransactionType.send,
-    ),
-    Transation(
-      userImage: 'hiba.png',
-      userName: 'Hiba Saleh',
-      dateTime: 'Oct 04, 05:45 AM',
-      amount: 09.00,
-      transactionType: TransactionType.request,
-    ),
-  ];
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<PointsTransaction> transactions = [];
+  double totalPoints = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCustomerData();
+  }
+
+  Future<void> _loadCustomerData() async {
+    try {
+      final customerData = await ApiService.getCustomer(widget.customerId);
+      setState(() {
+        totalPoints = (customerData['points'] ?? 0).toDouble();
+        transactions = (customerData['transactions'] as List<dynamic>?)
+                ?.map((tx) => PointsTransaction(
+                      merchantName: tx['merchantName'],
+                      dateTime: tx['dateTime'],
+                      points: (tx['points'] as num).toDouble(),
+                      type: tx['type'] == 'earn'
+                          ? PointsTransactionType.earn
+                          : PointsTransactionType.spend,
+                    ))
+                .toList() ??
+            [];
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur chargement: ${e.toString()}')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Stack(
-          children: [
-            Container(
-              height: 262.h,
-              width: 375.w,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            CustomPaint(
-              size: Size(375.w, 262.h),
-              painter: DrawTriangleShape(),
-            ),
-            Positioned(
-              top: 48.h,
-              width: 375.w,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 30.w),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Dashboard",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    CircleAvatar(
-                      radius: 20.w,
-                      backgroundImage:
-                          const AssetImage("assets/images/Profile Picture.png"),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              top: 120.h,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 30.w),
-                child: Text(
-                  "Hi, Amanda!",
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              top: 152.h,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 30.w),
-                child: Text(
-                  "Total Balance",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              top: 190.h,
-              width: 375.w,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 30.w),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      "\$124.57",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 40.sp,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        SizedBox(
-                          width: 24.w,
-                          height: 24.h,
-                          child: FittedBox(
-                            child: SvgPicture.asset(
-                              "assets/images/notifications_icon.svg",
-                            ),
-                            fit: BoxFit.fill,
-                          ),
-                        ),
-                        Positioned(
-                          right: 3.07.w,
-                          top: -4.h,
-                          child: Container(
-                            height: 10.h,
-                            width: 10.w,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.secondary,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-        const VerticalSpacer(height: 32),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 15.w),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              InkWell(
-                onTap: () {},
-                child: Container(
-                  height: 49.h,
-                  width: 165.w,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.secondary,
-                    borderRadius: BorderRadius.circular(10.w),
-                  ),
+    return Scaffold(
+      body: Column(
+        children: [
+          // HEADER
+          SizedBox(
+            height: 262.h,
+            width: double.infinity,
+            child: Stack(
+              children: [
+                Container(height: 262.h, width: double.infinity, color: Theme.of(context).colorScheme.primary),
+                CustomPaint(size: Size(double.infinity, 262.h), painter: DrawTriangleShape()),
+                Positioned(
+                  top: 48.h,
+                  left: 30.w,
+                  right: 30.w,
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      SizedBox(
-                        width: 21.w,
-                        height: 21.h,
-                        child: FittedBox(
-                          child: SvgPicture.asset(
-                            "assets/images/send_icon.svg",
+                      Text("Dashboard", style: TextStyle(color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.w500)),
+                      CircleAvatar(radius: 20.w, backgroundImage: const AssetImage("assets/images/Profile Picture.png")),
+                    ],
+                  ),
+                ),
+                Positioned(top: 120.h, left: 30.w, child: Text("Hi, Amanda!", style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 16.sp, fontWeight: FontWeight.w500))),
+                Positioned(top: 152.h, left: 30.w, child: Text("Total Points", style: TextStyle(color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.w500))),
+                Positioned(
+                  top: 190.h,
+                  left: 30.w,
+                  right: 30.w,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("${totalPoints.toStringAsFixed(2)} pts", style: TextStyle(color: Colors.white, fontSize: 40.sp, fontWeight: FontWeight.w600)),
+                      Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          SizedBox(width: 24.w, height: 24.h, child: FittedBox(child: SvgPicture.asset("assets/images/notifications_icon.svg"), fit: BoxFit.fill)),
+                          Positioned(
+                            right: 3.07.w,
+                            top: -4.h,
+                            child: Container(height: 10.h, width: 10.w, decoration: BoxDecoration(color: Theme.of(context).colorScheme.secondary, shape: BoxShape.circle)),
                           ),
-                          fit: BoxFit.fill,
-                        ),
-                      ),
-                      const HorizontalSpacer(width: 4),
-                      Text(
-                        "Send Money",
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-              ),
-              InkWell(
-                onTap: () {},
-                child: Container(
-                  height: 49.h,
-                  width: 165.w,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(10.w),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 21.w,
-                        height: 21.h,
-                        child: FittedBox(
-                          child: SvgPicture.asset(
-                            "assets/images/request_icon.svg",
-                          ),
-                          fit: BoxFit.fill,
-                        ),
-                      ),
-                      const HorizontalSpacer(width: 4),
-                      Text(
-                        "Request Money",
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            ],
+              ],
+            ),
           ),
-        ),
-        const VerticalSpacer(height: 32),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 15.w),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Last Transactions",
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16.sp,
-                ),
-              ),
-              InkWell(
-                onTap: () {},
-                child: Text(
-                  "View All",
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w500,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-              )
-            ],
-          ),
-        ),
-        ..._buildTransactionsList(),
-      ],
-    );
-  }
+          const VerticalSpacer(height: 32),
 
-  List<Widget> _buildTransactionsList() {
-    if (transations.isNotEmpty) {
-      return [
-        const VerticalSpacer(height: 16),
-        Expanded(
-          child: SingleChildScrollView(
+          // ACTION BUTTONS
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 15.w),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _actionButton(
+                  context,
+                  iconWidget: SvgPicture.asset("assets/images/send_icon.svg"),
+                  label: "Payer un marchand",
+                  color: Theme.of(context).colorScheme.secondary,
+                  onTap: () async {
+                    final newTransaction = await Navigator.push<PointsTransaction>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PayMerchantScreen(customerId: widget.customerId),
+                      ),
+                    );
+
+                    if (newTransaction != null) {
+                      setState(() {
+                        transactions.insert(0, newTransaction);
+                        totalPoints += newTransaction.points;
+                      });
+                    }
+                  },
+                ),
+                _actionButton(
+                  context,
+                  iconWidget: const Icon(Icons.videogame_asset, color: Colors.white),
+                  label: "Jouer",
+                  color: Theme.of(context).colorScheme.primary,
+                  textColor: Colors.white,
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const MiniGameScreen()));
+                  },
+                ),
+              ],
+            ),
+          ),
+          const VerticalSpacer(height: 32),
+
+          // HISTORIQUE
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 15.w),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("Historique des points", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16.sp)),
+                InkWell(
+                  onTap: () {},
+                  child: Text("Voir tout", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.primary)),
+                ),
+              ],
+            ),
+          ),
+          const VerticalSpacer(height: 16),
+
+          Expanded(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 15.w),
               child: ListView.separated(
-                padding: EdgeInsets.zero,
-                itemCount: transations.length,
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                separatorBuilder: (context, index) => const VerticalSpacer(
-                  height: 16,
-                ),
-                itemBuilder: (context, index) => TransactionCard(
-                  transaction: transations[index],
-                ),
+                itemCount: transactions.length,
+                separatorBuilder: (_, __) => const VerticalSpacer(height: 16),
+                itemBuilder: (context, index) => _transactionCard(transactions[index]),
               ),
-            ),
-          ),
-        )
-      ];
-    } else {
-      return [
-        const VerticalSpacer(height: 89),
-        SvgPicture.asset("assets/images/empty_illustration.svg"),
-        const VerticalSpacer(height: 16),
-        Text(
-          "There’s no transactions till now!",
-          style: TextStyle(
-            fontSize: 12.sp,
-            fontWeight: FontWeight.w500,
-            color: Colors.black.withOpacity(0.5),
-          ),
-        )
-      ];
-    }
-  }
-}
-
-class NavigationButton extends StatelessWidget {
-  const NavigationButton({
-    Key? key,
-    required this.isActive,
-    required this.title,
-    required this.icon,
-  }) : super(key: key);
-
-  final bool isActive;
-  final String icon;
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 70.h,
-      width: 82.w,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 20.w,
-            height: 20.h,
-            child: FittedBox(
-              child: SvgPicture.asset(
-                "assets/images/$icon.svg",
-                color: isActive ? Colors.black : Colors.black.withOpacity(0.3),
-              ),
-              fit: BoxFit.fill,
-            ),
-          ),
-          const VerticalSpacer(height: 6),
-          Text(
-            title,
-            style: TextStyle(
-              color: isActive ? Colors.black : Colors.black.withOpacity(0.3),
-              fontSize: 12.sp,
             ),
           ),
         ],
       ),
     );
   }
-}
 
-class TransactionCard extends StatelessWidget {
-  const TransactionCard({
-    Key? key,
-    required this.transaction,
-  }) : super(key: key);
-
-  final Transation transaction;
-
-  String formatCurrency(double amount) {
-    final NumberFormat numberFormat = NumberFormat("#,##00.00", "en_US");
-    return numberFormat.format(amount);
+  Widget _actionButton(
+    BuildContext context, {
+    required Widget iconWidget,
+    required String label,
+    required Color color,
+    Color textColor = Colors.black,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        height: 49.h,
+        width: 165.w,
+        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(10.w)),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(width: 21.w, height: 21.h, child: FittedBox(child: iconWidget, fit: BoxFit.fill)),
+            const HorizontalSpacer(width: 4),
+            Text(label, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500, color: textColor)),
+          ],
+        ),
+      ),
+    );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _transactionCard(PointsTransaction tx) {
     return SizedBox(
       height: 49.h,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              CircleAvatar(
-                radius: 20.w,
-                backgroundColor: const Color(0xFFF3F4F5),
-                backgroundImage:
-                    AssetImage("assets/images/${transaction.userImage}"),
-              ),
-              Positioned(
-                left: 25.w,
-                top: 25.h,
-                child: Container(
-                  width: 24.w,
-                  height: 24.h,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: transaction.transactionType == TransactionType.send
-                        ? SvgPicture.asset(
-                            'assets/images/send_icon.svg',
-                            color: Theme.of(context).colorScheme.secondary,
-                          )
-                        : SvgPicture.asset(
-                            'assets/images/request_icon.svg',
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                  ),
-                ),
-              ),
-            ],
+          CircleAvatar(
+            radius: 20.w,
+            backgroundColor: const Color(0xFFF3F4F5),
+            child: Text(tx.merchantName[0], style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16.sp, color: Colors.black)),
           ),
           const HorizontalSpacer(width: 17),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                transaction.userName,
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: const Color(0xFF1A1A1A),
-                ),
-              ),
+              Text(tx.merchantName, style: TextStyle(fontSize: 14.sp, color: Colors.black)),
               const VerticalSpacer(height: 1),
-              Text(
-                transaction.dateTime,
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: const Color(0xFF1A1A1A).withOpacity(0.4),
-                ),
-              )
+              Text(tx.dateTime, style: TextStyle(fontSize: 12.sp, color: Colors.black.withOpacity(0.4))),
             ],
           ),
           const Spacer(),
           Text(
-            transaction.transactionType == TransactionType.send
-                ? "-\$${formatCurrency(transaction.amount)}"
-                : "+\$${formatCurrency(transaction.amount)}",
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 16.sp,
-              fontWeight: FontWeight.w600,
-            ),
+            tx.type == PointsTransactionType.earn ? "+${tx.points.toStringAsFixed(2)} pts" : "-${tx.points.toStringAsFixed(2)} pts",
+            style: TextStyle(color: tx.type == PointsTransactionType.earn ? Colors.green : Colors.red, fontSize: 16.sp, fontWeight: FontWeight.w600),
           )
         ],
       ),
@@ -475,24 +249,32 @@ class TransactionCard extends StatelessWidget {
 }
 
 class DrawTriangleShape extends CustomPainter {
-  Paint painter = Paint()
-    ..color = const Color(0xFF3491DB)
-    ..style = PaintingStyle.fill;
+  final Paint painter = Paint()..color = const Color(0xFF3491DB)..style = PaintingStyle.fill;
 
   @override
   void paint(Canvas canvas, Size size) {
     var path = Path();
-
     path.moveTo(size.width, 0);
     path.lineTo(size.width, size.height);
     path.lineTo(0, size.height);
     path.close();
-
     canvas.drawPath(path, painter);
   }
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    return false;
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}
+
+class MiniGameScreen extends StatelessWidget {
+  const MiniGameScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Mini-Jeu")),
+      body: Center(
+        child: Text("Ici sera le mini-jeu ! 🎮", style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w600)),
+      ),
+    );
   }
 }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:pay_now/widgets/horizontal_spacer.dart';
-import 'package:pay_now/widgets/primary_button.dart';
-import 'package:pay_now/widgets/vertical_spacer.dart';
+import 'package:cagnotte_app/widgets/horizontal_spacer.dart';
+import 'package:cagnotte_app/widgets/primary_button.dart';
+import 'package:cagnotte_app/widgets/vertical_spacer.dart';
 
 class SendMoneyScreen extends StatelessWidget {
   const SendMoneyScreen({Key? key}) : super(key: key);
@@ -284,7 +284,7 @@ class SendMoneyScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const VerticalSpacer(height: 40),
-                const PrimaryButton(text: "Ok, Thanks")
+                //const PrimaryButton(text: "Ok, Thanks")
               ],
             ),
           ),

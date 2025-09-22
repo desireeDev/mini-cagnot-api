@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:pay_now/screens/contacts_screen.dart';
-import 'package:pay_now/screens/home_screen.dart';
-import 'package:pay_now/screens/profile_screen.dart';
-import 'package:pay_now/screens/settings_screen.dart';
-import 'package:pay_now/screens/transactions_screen.dart';
-import 'package:pay_now/widgets/vertical_spacer.dart';
+import 'package:cagnotte_app/screens/home_screen.dart';
+import 'package:cagnotte_app/screens/profile_screen.dart';
+import 'package:cagnotte_app/screens/settings_screen.dart';
+import 'package:cagnotte_app/widgets/vertical_spacer.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,25 +20,25 @@ class MyApp extends StatelessWidget {
       designSize: const Size(375, 812),
       minTextAdapt: true,
       splitScreenMode: true,
-      builder: (_) => MaterialApp(
+      builder: (context, child) => MaterialApp(
         useInheritedMediaQuery: true,
         debugShowCheckedModeBanner: false,
-        title: 'Pay Now',
+        title: 'Mini-Cagnot-App',
         theme: ThemeData(
           brightness: Brightness.light,
           colorScheme: ColorScheme.fromSwatch().copyWith(
-            primary: const Color(0xFF1A87DD),
+            primary: const Color.fromARGB(255, 220, 170, 150),
             secondary: const Color(0xFFF8BB18),
             onSecondaryContainer: const Color(0xFF1A1A1A),
             onSurface: const Color(0xFF1A1A1A),
           ),
           textTheme: const TextTheme().copyWith(
-              bodyText2: const TextStyle(
+              bodyMedium: const TextStyle(
             color: Color(0xFF1A1A1A),
           )),
           fontFamily: 'SF-Pro-Rounded',
         ),
-        home: const SettingsScreen(),
+        home: const SplashScreen(),
       ),
     );
   }
@@ -56,9 +55,9 @@ class _AppState extends State<App> {
   int currentScreenIndex = 3;
 
   final screens = [
-    HomeScreen(),
-    TransactionsScreen(),
-    ContactsScreen(),
+    HomeScreen(
+      customerId: 0,
+    ),
     const ProfileScreen(),
   ];
 

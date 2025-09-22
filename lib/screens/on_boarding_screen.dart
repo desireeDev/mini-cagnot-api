@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:pay_now/widgets/horizontal_spacer.dart';
-import 'package:pay_now/widgets/primary_button.dart';
-import 'package:pay_now/widgets/vertical_spacer.dart';
+import 'package:cagnotte_app/screens/home_screen.dart';
+import 'package:cagnotte_app/screens/login_signup_screen.dart';
+import 'package:cagnotte_app/widgets/horizontal_spacer.dart';
+import 'package:cagnotte_app/widgets/primary_button.dart';
+import 'package:cagnotte_app/widgets/vertical_spacer.dart';
 
 class OnBoardingScreen extends StatefulWidget {
   const OnBoardingScreen({Key? key}) : super(key: key);
@@ -13,31 +15,114 @@ class OnBoardingScreen extends StatefulWidget {
 
 class _OnBoardingScreenState extends State<OnBoardingScreen> {
   final PageController _pageController = PageController();
+  int currentPage = 0;
+
+  final List<OnBoardingTemplateData> pages = [
+    OnBoardingTemplateData(
+      title: "Gagnez des points à chaque paiement",
+      description:
+          "Effectuez vos achats et accumulez automatiquement des points pour chaque transaction.",
+      image: "illustration-1",
+    ),
+    OnBoardingTemplateData(
+      title: "Suivez votre cagnotte en temps réel",
+      description:
+          "Visualisez vos points accumulés, vos transactions et votre progression vers vos récompenses.",
+      image: "illustration-2",
+    ),
+    OnBoardingTemplateData(
+      title: "Échangez vos points facilement",
+      description:
+          "Convertissez vos points en cadeaux, réductions ou offres exclusives, directement depuis l’application.",
+      image: "illustration-3",
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController.addListener(() {
+      final newPage = _pageController.page?.round() ?? 0;
+      if (newPage != currentPage) {
+        setState(() => currentPage = newPage);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _goToLoginSignup() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginSignupScreen()),
+    );
+  }
+
+  void _goToHome() {
+    // Magouille : customerId fictif pour test
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => HomeScreen(customerId: 1)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      child: SafeArea(
-        child: Scaffold(
-          body: PageView(
+    return Scaffold(
+      body: Stack(
+        children: [
+          PageView.builder(
             controller: _pageController,
-            children: const [
-              ManageAccountsPage(),
-              TrackActivityPage(),
-              PaymentsPage(),
-            ],
+            itemCount: pages.length,
+            itemBuilder: (context, index) {
+              final page = pages[index];
+              return OnBoardingTemplate(
+                title: page.title,
+                description: page.description,
+                image: page.image,
+                index: index + 1,
+                currentIndex: currentPage,
+              );
+            },
           ),
-        ),
+          // Header avec pagination et bouton "Passer"
+          Positioned(
+            top: 32.h,
+            left: 0,
+            right: 0,
+            child: OnBoardingHeader(
+              index: currentPage + 1,
+              onSkip: _goToHome,
+            ),
+          ),
+          // Bouton "Commencer" seulement sur la dernière page
+          if (currentPage == pages.length - 1)
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 32.h),
+                child: PrimaryButton(
+                  text: "Commencer",
+                  onPressed: _goToLoginSignup,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
 }
 
 class OnBoardingHeader extends StatelessWidget {
-  const OnBoardingHeader({Key? key, required this.index}) : super(key: key);
+  const OnBoardingHeader({Key? key, required this.index, this.onSkip})
+      : super(key: key);
 
   final int index;
+  final VoidCallback? onSkip;
 
   @override
   Widget build(BuildContext context) {
@@ -57,9 +142,9 @@ class OnBoardingHeader extends StatelessWidget {
             ),
             index != 3
                 ? InkWell(
-                    onTap: () {},
+                    onTap: onSkip,
                     child: Text(
-                      'Skip',
+                      'Passer',
                       style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.w500,
@@ -75,109 +160,45 @@ class OnBoardingHeader extends StatelessWidget {
   }
 }
 
-class ManageAccountsPage extends StatelessWidget {
-  const ManageAccountsPage({Key? key}) : super(key: key);
+class OnBoardingTemplateData {
+  final String title;
+  final String description;
+  final String image;
 
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned(
-          top: 32.h,
-          child: const OnBoardingHeader(index: 1),
-        ),
-        const OnBoardingTemplate(
-          title: "Add all accounts and manage",
-          description:
-              "You can add all accounts in one place and use it to send and request.",
-          image: "illustration-1",
-          index: 1,
-        ),
-      ],
-    );
-  }
-}
-
-class TrackActivityPage extends StatelessWidget {
-  const TrackActivityPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned(
-          top: 32.h,
-          child: const OnBoardingHeader(index: 2),
-        ),
-        const OnBoardingTemplate(
-          title: "Track your activity",
-          description:
-              "You can track your income, expenses activities and all statistics.",
-          image: "illustration",
-          index: 2,
-        ),
-      ],
-    );
-  }
-}
-
-class PaymentsPage extends StatelessWidget {
-  const PaymentsPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned(
-          top: 32.h,
-          child: const OnBoardingHeader(index: 3),
-        ),
-        const OnBoardingTemplate(
-          title: "Send & request payments",
-          description:
-              "You can send or recieve any payments from yous accounts.",
-          image: "Wallet-rafiki",
-          index: 3,
-        ),
-        Positioned(
-          bottom: 32.h,
-          width: 375.w,
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 30.w),
-            child: const PrimaryButton(text: "Get Started"),
-          ),
-        ),
-      ],
-    );
-  }
+  OnBoardingTemplateData({
+    required this.title,
+    required this.description,
+    required this.image,
+  });
 }
 
 class OnBoardingTemplate extends StatelessWidget {
-  const OnBoardingTemplate(
-      {Key? key,
-      required this.title,
-      required this.description,
-      required this.image,
-      required this.index})
-      : super(key: key);
+  const OnBoardingTemplate({
+    Key? key,
+    required this.title,
+    required this.description,
+    required this.image,
+    required this.index,
+    required this.currentIndex,
+  }) : super(key: key);
 
   final String title;
   final String description;
   final String image;
   final int index;
+  final int currentIndex;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SizedBox(
           width: 375.w,
           height: 279.42.h,
           child: FittedBox(
-            child: Image.asset('assets/images/$image.png'),
             fit: BoxFit.fill,
+            child: Image.asset('assets/images/$image.png'),
           ),
         ),
         const VerticalSpacer(height: 65),
@@ -206,19 +227,12 @@ class OnBoardingTemplate extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            PageViewButton(
-              isActive: index == 1,
-            ),
-            const HorizontalSpacer(width: 8),
-            PageViewButton(
-              isActive: index == 2,
-            ),
-            const HorizontalSpacer(width: 8),
-            PageViewButton(
-              isActive: index == 3,
-            ),
+            for (int i = 0; i < 3; i++) ...[
+              PageViewButton(isActive: i == currentIndex),
+              const HorizontalSpacer(width: 8),
+            ]
           ],
-        )
+        ),
       ],
     );
   }
