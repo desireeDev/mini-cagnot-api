@@ -29,15 +29,14 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
-      "@typescript-eslint/no-unsafe-assignment": "error",
       "@typescript-eslint/prefer-readonly": ["error", { "onlyInlineLambdas": false }],
           // Note: you must disable the base rule as it can report incorrect errors
     "require-await": "off",
     "@typescript-eslint/require-await": "error",
     "@typescript-eslint/no-unsafe-call": "error",
       "@typescript-eslint/no-unsafe-return": "error",
+      "@typescript-eslint/no-unsafe-assignment": "error",
       
-
   //Ajout de la règle prettier pour la gestion des fins de ligne    
       "prettier/prettier": [
     "error",

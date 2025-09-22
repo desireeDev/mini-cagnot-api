@@ -18,7 +18,10 @@ import { LoginDto } from './dto/login.dto/login.dto';
 @Injectable()
 export class AuthService {
   // Injection de PrismaService et JwtService dans le constructeur
-  constructor(private prisma: PrismaService, private jwt: JwtService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jwt: JwtService,
+  ) {}
 
   // Méthode pour inscrire un nouvel utilisateur
   async signup(data: SignupDto) {

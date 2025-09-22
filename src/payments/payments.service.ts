@@ -11,7 +11,7 @@ export class PaymentsService {
   /**
    * Crée un paiement et met à jour les points du client
    * @param data - données du paiement
-   * @returns le paiement créé avec les points gagnés
+   * @returns le paiement créé avec les points gagnés et total de points
    */
   async create(data: CreatePaymentDto) {
     const pointsEarned = Math.floor(data.amount);
@@ -26,12 +26,13 @@ export class PaymentsService {
     });
 
     // Mise à jour des points du client
-    await this.prisma.customer.update({
+    const updatedCustomer = await this.prisma.customer.update({
       where: { id: data.customerId },
       data: { points: { increment: pointsEarned } },
+      select: { id: true, points: true }, // On récupère le total des points
     });
 
-    return { ...payment, pointsEarned };
+    return { ...payment, pointsEarned, totalPoints: updatedCustomer.points };
   }
 
   /**
@@ -61,16 +62,48 @@ export class PaymentsService {
     id: number,
     data: Partial<Omit<CreatePaymentDto, 'customerId'>>, // On ne peut pas changer le client
   ): Promise<Payment> {
-    // Vérifie si le paiement existe
-    const existingPayment = await this.prisma.payment.findUnique({ where: { id } });
+    const existingPayment = await this.prisma.payment.findUnique({
+      where: { id },
+    });
     if (!existingPayment) {
       throw new NotFoundException(`Payment with ID ${id} not found`);
     }
 
-    // Met à jour le paiement
     return this.prisma.payment.update({
       where: { id },
       data,
     });
+  }
+
+  /**
+   * Annule un paiement et retire les points du client
+   * @param id - ID du paiement
+   * @returns le paiement supprimé et points retirés
+   */
+  async remove(id: number) {
+    // Vérifie si le paiement existe
+    const payment = await this.prisma.payment.findUnique({ where: { id } });
+    if (!payment) {
+      throw new NotFoundException(`Payment with ID ${id} not found`);
+    }
+
+    const pointsToRemove = Math.floor(payment.amount);
+
+    // Supprime le paiement
+    await this.prisma.payment.delete({ where: { id } });
+
+    // Retire les points au client
+    const updatedCustomer = await this.prisma.customer.update({
+      where: { id: payment.customerId },
+      data: { points: { decrement: pointsToRemove } },
+      select: { id: true, points: true },
+    });
+
+    return {
+      message: 'Payment cancelled and points removed',
+      removedPaymentId: payment.id,
+      pointsRemoved: pointsToRemove,
+      totalPoints: updatedCustomer.points,
+    };
   }
 }
