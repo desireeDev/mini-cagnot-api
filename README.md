@@ -10,7 +10,7 @@ Tech stack : NestJS • TypeScript • Prisma • PostgreSQL • Docker
 
 ```bash
 # Cloner le projet
-git clone https://github.com/tonpseudo/loyalnest.git
+git clone https://github.com/desireedev/loyalnest.git
 cd loyalnest
 
 # Installer les dépendances
