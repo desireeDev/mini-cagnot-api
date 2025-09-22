@@ -61,7 +61,15 @@ docker-compose up --build
 
 * Démonstration de **NestJS + Prisma + Docker**
 * Prototype rapide aligné avec la vision Cagnot’
-* Montre la capacité à transformer une idée en **solution fonctionnelle
+* Montre la capacité à transformer une idée en solution fonctionnelle
+* Pensé pour être évolutif et modifiable :
+ajout de règles de fidélité personnalisées par commerçant
+
+intégration de nouvelles sources de paiement
+
+extension vers de la gamification ou des récompenses
+
+Une architecture claire qui peut scaler facilement avec plus d’utilisateurs et de fonctionnalités.
 
 
 ✨ Auteur : [Syntiche Attoh](https://desyportfolio.netlify.app/)
